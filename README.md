@@ -38,7 +38,7 @@ API_KEY  = "YOUR_API_KEY"
 N_FUTURE_FRAMES = 10
 
 # insert the overall navigation goal here
-NAV_GOAL = "go through the intersection"
+NAV_GOAL = "goal of your data"
 ```
 
 Notes:
