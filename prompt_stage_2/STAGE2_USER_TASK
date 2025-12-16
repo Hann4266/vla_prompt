@@ -1,0 +1,188 @@
+"""
+<task_objective>
+Determine the ego vehicle's Driving Decision based solely on its future motion (0–6 s)
+and the Stage I critical components.
+
+You are performing Stage II (Driving Decision & Causal Grounding):
+
+- Use ONLY ego's future trajectory (future frames).
+- Use Stage I JSON as the source of critical_components.
+- Do NOT add, remove, or alter Stage I objects; 
+- You MUST apply the longitudinal decision rules exactly as defined below.
+- You MUST repair routing_intent when the ego clearly turns but Stage I intent is missing.
+- if future frames is near an intersection or crosswalk, focus more on the vehicles or pedestrians near the intersection or crosswalk for your decision making and reasoning.
+- when making turning decision in intersection or crosswalk, consider the vehicles or pedestrians near the intersection or crosswalk as main influence for ego vehicle if they are passed by ego vehicle in future frames than they are not a consideration for turning decision of ego vehicle.
+
+=========================
+
+
+You MUST compare the direction / vanishing point between:
+
+- Future Frame 0 (t = +0.0 s)
+- Future Frame 11 (t ≈ +5.5–6.0 s)
+
+Interpretation:
+- Focus on the lane centerline and road vanishing point, not small camera jitter.
+- Consider where the ego is aligned at t = 0.0 s vs. where it is aligned at t ≈ 5.5–6.0 s.
+-  focus on the overall evironment if it is near an intersection or crosswalk pay attention to the merging/ crossing vehicles pedestrians near the intersection or crosswalk for your decision making.
+
+
+
+Direction:
+- If the final road direction is clearly to the left of the original:
+    → treat as a left turn in reasoning and routing_intent repair.
+- If the final road direction is clearly to the right of the original:
+    → treat as a right turn in reasoning and routing_intent repair.
+
+Ambiguity handling:
+- If you cannot confidently tell whether a significant turn happened (e.g., only gentle curvature,
+  no obvious intersection branch), you MUST not include any turn in reasoning or routing_intent repair. 
+
+Summary:
+- Clear, intersection-like yaw change → lateral = "Turn (intersection/roundabout/U-turn)" ONLY. 
+- Otherwise → lateral ∈ { "Lane keeping & centering", "Lane change (lateral push)" } ONLY.
+
+=========================
+
+Requirements:
+- The agent is a pedestrian or cyclist.
+- It is located within, or very near, the ego lane or clear path of travel (including directly in lane,
+  stepping into lane, or very close such that ego must consider them).
+- Ego's forward motion would reasonably need to slow, yield, or stop due to this agent.
+if it is near an intersection or crosswalk, focus more on the vehicles or pedestrians near the intersection or crosswalk for your decision making and reasoning.
+
+ 
+
+Additional constraints:
+- Do NOT remove, modify, or reorder any existing Stage I routing_intent entries.
+- Do NOT add a new turn entry if Stage I already contains any "turn_left" or "turn_right"
+  intent (from either "navigation" or "road_geometry").
+- Do NOT add turn intent when the yaw change is small or ambiguous; in such cases, do not
+  change routing_intent at all.
+
+
+
+</task_objective>
+
+<inputs>
+HISTORY JSON (Stage I Output):
+__INSERT_STAGE1_JSON_HERE__
+
+FUTURE FRAMES (Trajectory Only):
+[IMAGE: future_frame_0 at t = +0.0 s]
+[IMAGE: future_frame_5 at t = +2.5 s]
+[IMAGE: future_frame_11 at t = +5.5 s]
+</inputs>
+
+<decision_labels>
+LONGITUDINAL (choose exactly one):
+
+- "Set speed tracking"
+- "Lead obstacle following"
+- "Yield (agent right-of-way)"
+- "Stop for static constraints"
+- "None"
+Rules for LONGITUDINAL decision:
+1. Set speed tracking:
+    - No obstacles, traffic controls, or road geometry require speed changes.
+
+2. Lead obstacle following:
+    
+    - A lead vehicle or obstacle directly ahead within one car length constrains ego's speed.
+    you MUST Not choose this if ANY of the following conditions are met:
+        - There are crossing vehicles or pedestrians at/near an intersection or crosswalk that is near the ego.
+        - The lead vehicle is no longer present in future frames.
+        the lead vihicle is far away and does not constrain ego's speed.
+        the ego is stopping or yielding for other reasons (e.g., crossing vehicles/pedestrians, red light, stop sign, etc.).
+        the ego is father away compared to lead vehicle in future frames.
+
+
+
+3. Yield (agent right-of-way):
+    You MUST choose this if ANY of the following conditions are met
+
+        during intersection crossing or crosswalk scenarios:
+        - Ego must yield to crossing vehicles or pedestrians with right-of-way.
+        - Ego slows or stops to allow crossing vehicles to pass first.
+        outside intersection/crosswalk scenarios:
+        - Ego slows or stops for VRUs (pedestrians/cyclists) directly in its path who have right-of-way.
+4. Stop for static constraints:
+    - Ego must stop or slow significantly for static road constraints
+        (red light, stop sign, traffic jam, blocked lane, etc.).
+
+
+    
+
+
+LATERAL (choose exactly one, obeying Yaw Test rules):
+
+- "Lane keeping & centering" (straight trajectory, no clear turn, no lane change)
+- "Turn (intersection/roundabout/U-turn)" (significant, intersection-like yaw change)
+- "Lane change (lateral push)" (clear lateral shift into neighboring lane, same general heading)
+</decision_labels>
+
+Reasoningtrace RULES:
+Your reasoning_trace must clearly explain the ego’s first driving decision after the keyframe using ONLY the critical components identified in Stage I (the 0–2s history window). Do not use any future information as causes.
+
+Keep the reasoning concise and decision-grounded:
+
+1. Causal locality:
+   - all resoning mus
+
+2. Proximate causes only:
+   - Mention only the factors that directly motivate the selected decision
+     (lead vehicle, VRU, red light, curve, blocked lane, routing intent, etc.).
+   - Do not include irrelevant scene details.
+
+3. Match the formal decision type:
+   - Lead-following → in-path lead constrains speed.
+   - Yield/Stop → right-of-way constraint.
+   - Speed adaptation → road geometry/event requires slowing.
+   - Gap-searching → insufficient gap or blocked target lane.
+   - Lane change / nudge / turn → required by routing or obstacle pressure.
+   - Set speed tracking → no constraints are present.
+
+4. Use explicit cause → effect language:
+   - “Because [factor A] and [factor B], the ego chooses to [decision].”
+
+The reasoning_trace must be short, causal, and directly tied to the selected driving decision.
+
+<output_schema>
+Return a SINGLE JSON object:
+
+{
+  "driving_decision": {
+    "longitudinal": "Set speed tracking | Lead obstacle following | Yield  | Stop for static constraints",
+    "lateral": "Lane keeping & centering | Turn (intersection/roundabout/U-turn) | Lane change (lateral push)"
+  },
+  "critical_components": {
+  use the exact same critical_components object from the Stage I JSON input, with  MODIFICATIONS refer to the future frames but only use objects identified in Stage I.
+  },
+  "reasoning_trace": "",
+  "qa_notes": "Short note on whether the ego turned, changed lanes, or went straight, and any ambiguity."
+  "location for critical compent in the past": '
+}
+
+
+
+Constraints:
+
+- "longitudinal" MUST be exactly one of the listed longitudinal labels.
+- "lateral" MUST be exactly one of the listed lateral labels and MUST obey the Yaw Test rules.
+- critical_components MUST preserve Stage I objects; you may only APPEND to routing_intent as specified.
+- Do NOT introduce any new objects or non-enumerated strings.
+</output_schema>
+
+Step-by-Step Generation:
+
+<thought_process> (internal only):
+- Decide whether ego clearly turned left/right, kept lane, or performed a lane change.
+- if a crossing or merging vihicle is present in both history and future frame make sure to check if you need to yeild or stop for it
+- if crossing vehicles or pedestrians and leading vehicle both apper as critical objects near intersection or crosswalk, consider crossing vehicles or pedestrians as main influence for longitudinal decision making.
+- check if lead vehicle is still considered as lead vehicle in All future frames. if not, do not consider lead vehicle for longitudinal decision making(specially when crossing/merging vehicles or pedestrians are present at intersections).
+- Analyze ego's speed profile relative to Stage I objects and static constraints to pick the correct longitudinal label.
+- Check Stage I routing_intent and decide if routing intent repair is required under the strict conditions.
+- Assign "longitudinal" following the longitudinal decision rules.
+- Copy Stage I critical_components and, if a clear turn occurred without prior intent, append exactly one new navigation-based turn intent.
+- Output the final JSON object inside a json block, matching the schema exactly.
+"""

@@ -1,0 +1,266 @@
+"""
+<task_objective>
+Analyze the history frames and any provided navigation goal. Identify all observable Causal Factors
+that can plausibly influence the ego vehicle's near-term driving.
+
+You are performing Stage I (Critical Components):
+
+- Use ONLY history frames (t ∈ [-2.0 s, 0.0 s]).
+- Do NOT use any future frames or imagined trajectories.
+- Do NOT label ego's driving decision (that is Stage II).
+- Strictly follow the role, type, motion_state, and routing_intent rules below.
+- Only include agents and elements that have a direct, plausible influence on ego in the near term.
+- any car or pedestrian near the crosswalk or intersection should be included as critical objects.
+</task_objective>
+
+=========================
+location description
+Allowed location description (and ONLY these): "in front of ego vehicle", "to the left of ego vehicle", "to the right of ego vehicle", "far left of ego vehicle", "far right of ego vehicle", "directly ahead in ego lane", "in adjacent left lane", "in adjacent right lane", "oncoming lane", "merging into ego lane from left", "merging into ego lane from right".
+
+
+=========================
+OBJECT ROLE DEFINITIONS
+
+==
+Allowed roles (and ONLY these): "lead", "crossing", "oncoming", "adjacent_left", "adjacent_right", "VRU_ahead", "merging".
+
+
+General constraint:
+If an agent does not clearly satisfy ANY role definition below, you MUST NOT assign a role.
+Do NOT guess a role just to fill the field.
+"merging"
+if sideview of vehicle is visible in camra front view and car is reletively on the same lane or coming in to the lane of ego vehicle in any of the history frames.
+A vehicle entering or partially entering the ego lane from a side street, driveway, shoulder,
+or ramp, whose path will JOIN the ego traffic flow (not simply cross through it).
+
+
+"lead"
+
+You MUST NOT label an object as "lead"
+if the side of the role vehicle is not visible in camera front in any of the history frames. 
+
+if the car is prependicular to the road of ego vehicle in any of the history frames.
+
+label a vehicle as "lead" ONLY if ALL of the following are true:    
+- The side of the role vehicle is never visible in camera front in any of the history frames.
+- The object is directly ahead of ego in the same lane of all history frames.
+
+- The object is a vehicle.
+- It lies in ego's current lane or the immediate, same-direction continuation of ego's lane.
+- If ego continued along the lane, it would reasonably follow behind this vehicle.
+
+If ANY of these conditions are violated (e.g., vehicle is off to the side, partially in a different lane,
+or clearly cross-traffic), you MUST NOT label the object as "lead".
+
+"crossing"
+A VRU or vehicle that is in, or clearly moving into, the drivable road area with primarily lateral motion
+across ego's lane or path.
+path intersects the ego lane within the next few meters — even if its motion is partially angled
+or diagonal — you MUST label it as "crossing".
+
+This includes:
+- Vehicles turning left onto the ego roadway.
+- Vehicles nose-out entering from a side street with clear intent to cross or enter the ego lane.
+- Vehicles that will intersect ego’s trajectory if ego continues forward.
+
+The key criterion:
+Does the agent intrude into the ego lane’s future path?
+If yes → role = "crossing".
+
+Requirements:
+- The agent is already in the road OR clearly stepping/moving from curb/sidewalk into the road area.
+- The observed or imminent motion is primarily left↔right or right↔left across ego's path,
+  not along the same direction as ego.
+- Includes jaywalkers, cyclists crossing the lane, vehicles cutting across ego's lane where paths intersect.
+
+You MUST NOT:
+- Label as "crossing" pedestrians who remain fully on the sidewalk or stationary at the curb with no
+  clear step into the road.
+- Label perpendicular cross-traffic that stays confined to its own non-intersecting roadway and does
+  NOT cross or enter ego's lane.
+
+"adjacent - left / adjacent - right"
+Vehicles in a lane next to the ego (left or right), moving roughly parallel to ego, and NOT in the ego's
+current or immediate path.
+
+do NOT label as "adjacent" if:
+-the vehicle is merging into ego lane or crossing ego lane
+- the vehicle is clearly in intersection cross-flow or perpendicular approaches.
+- you can see the side of the vehicle in camera front view in any of the history frames
+- the vehicle is not in the same direction as ego vehicle
+
+Requirements:
+- Heading is approximately parallel to ego's heading (similar direction, not facing ego).
+- They occupy a neighboring lane, not the ego lane.
+- They are not clearly in intersection cross-flow or perpendicular approaches.
+
+"oncoming"
+Vehicles in lanes with traffic flowing opposite to ego, facing toward ego.
+
+Requirements:
+- Clearly in the opposite-direction lane (often separated by lane markings, centerline, or median).
+- Heading is approximately opposite to ego's direction (antiparallel).
+- The vehicle's front faces toward ego.
+
+"VRU_ahead"
+A vulnerable road user (VRU: pedestrian or cyclist) in ego's path ahead that ego would need to consider
+for safety.
+
+Requirements:
+- The agent is a pedestrian or cyclist.
+- It is located within, or very near, the ego lane or clear path of travel (including directly in lane,
+  stepping into lane, or very close such that ego must consider them).
+- Ego's forward motion would reasonably need to slow, yield, or stop due to this agent.
+
+Do NOT:
+- Use "VRU_ahead" for pedestrians far away or safely separated by sidewalk/median with no clear interaction.
+- Assign any role if influence on ego is clearly negligible in the near term.
+
+=====================
+TYPE CONSTRAINTS
+
+"type" MUST be EXACTLY one of:
+
+- "vehicle"
+- "pedestrian"
+- "cyclist"
+
+Rules:
+- For all people on foot, ALWAYS use "pedestrian" (never "human", "person", or any other word).
+- Motor vehicles, buses, trucks, motorcycles, etc. → "vehicle".
+- Bicycles, e-bikes, scooters ridden like bicycles → "cyclist".
+No other type strings are allowed.
+
+=========================
+MOTION STATE GUIDELINES
+
+Allowed "motion_state" values (and ONLY these):
+- "merging"  → Vehicle visibly entering or partially entering ego lane from side street, driveway, or ramp.
+- "stopped"  → No observable motion across history frames (position effectively unchanged).
+- "slowing"  → Forward (or crossing) speed visibly decreasing across frames
+               (displacements get smaller or the agent is clearly braking).
+- "moving"   → Consistent forward progress along its path with no strong evidence of slowing.
+- "crossing" → Primarily lateral motion across the ego's path (left↔right), with observable displacement.
+
+
+
+Guidelines:
+- Choose the best-fitting single label based on observed history frames only.
+- When in doubt between "moving" and "slowing", prefer "moving" unless deceleration is clearly visible.
+- Use "crossing" ONLY when lateral motion across path is clear; otherwise prefer "moving"/"stopped".
+
+=====================================
+DE-DUPLICATION & RELEVANCE RULES
+
+You MUST avoid redundant listings in "critical_objects":
+
+- Include only agents that have a direct, plausible influence on ego in the near term.
+- Do NOT list many far-away or clearly irrelevant agents with the same role
+  (e.g., a dense crowd of pedestrians far back on a sidewalk with no impact on ego).
+- Prefer a concise set of the most critical agents:
+
+  - The principal lead vehicle (if any).
+  - The closest or most relevant crossing VRUs or vehicles.
+  - Key adjacent or oncoming vehicles that constrain ego's options (e.g., block lane change).
+
+If multiple agents play the same role, prioritize those:
+- Closest in range.
+- Most centrally aligned with ego's path.
+- Most likely to constrain ego in the next few seconds.
+
+=========================
+ROUTING INTENT RULES (Stage I)
+
+
+
+
+Routing intent entries MUST have:
+
+- "intended_maneuver": one of "keep_lane", "turn_left", "turn_right","yeild","stop"
+
+
+A. HUMAN NAVIGATION GOAL (if provided)
+
+You may be given an explicit human navigation goal in the inputs:
+
+<navigation_goal> (optional)
+NAV_GOAL: {NAV_GOAL}
+
+</navigation_goal>
+
+Rules:
+- If NAV_GOAL is provided, you MUST create exactly one routing_intent entry with:
+  {
+    "intended_maneuver": NAV_GOAL,
+    "reason": "navigation"
+  }
+
+
+
+
+
+</task_objective>
+
+<inputs>
+[IMAGE: history_frame_0 at t = -2.0 s]
+[IMAGE: history_frame_1 at t = -1.5 s]
+[IMAGE: history_frame_2 at t = -1.0 s]
+[IMAGE: history_frame_3 at t = -0.5 s]
+
+
+
+<output_schema>
+Return a SINGLE JSON object that strictly follows this schema:
+
+{
+  "critical_components": {
+    "critical_objects": [
+      {
+        "role": "lead | crossing | oncoming | adjacent | VRU_ahead",
+        "type": "vehicle | pedestrian | cyclist",
+        "location": {
+           discribe the location of the object in relation to ego vehicle
+        },
+    
+        "motion_state": "stopped | slowing | moving | crossing| merging",
+        "identifier": "what does the object look like (e.g., \"red sedan\", \"blue SUV\", \"pedestrian with white shirt\")",
+        "uncertainty": "Low"
+      }
+      // Zero or more objects, all following the same constraints.
+    ],
+    "traffic_lights": [],
+    "yield_stop_control": [],
+    "road_events": [],
+    "lane_and_lanelines": [],
+    "routing_intent": [
+      {
+        "intended_maneuver": "keep_lane | turn_left | turn_right"|"yeild"|"stop",
+
+      }
+      // Zero or more entries; follow routing rules above.
+    ],
+    "odd_constraints": []
+  },
+  "qa_notes": "Short free-text notes about any ambiguity or edge cases."
+}
+
+Constraints:
+
+- All "role" values MUST be chosen from the allowed list ONLY.
+- All "type" values MUST be exactly "vehicle", "pedestrian", or "cyclist".
+- All "motion_state" values MUST be exactly from the allowed list.
+- "intended_maneuver" and "reason" MUST strictly use the enumerated options above.
+- Do NOT introduce any extra keys or different strings.
+</output_schema>
+
+Step-by-Step Generation:
+
+<thought_process> (internal):
+- Carefully inspect each history frame.
+- Identify all agents that can plausibly influence ego's near-term motion.
+- Assign "role", "type", and "motion_state" respecting the strict definitions and allowed value lists.
+- Apply de-duplication: keep only the most critical agents as "critical_objects".
+- Read NAV_GOAL if provided and create a "navigation"-based routing_intent entry.
+- Output the final JSON object inside a json block, matching the schema exactly.
+</thought_process>
+"""
