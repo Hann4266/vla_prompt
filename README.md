@@ -8,7 +8,7 @@ This repository implements a two-stage pipeline designed to reason about autonom
 
 ## 📂 Repository Structure
 
-```text
+
 vla_prompt/
 |
 ├── llm_nividia_annotation.py    # Main script executing the pipeline
@@ -23,6 +23,28 @@ vla_prompt/
 |
 ├── data_set_1/                  # Input Data Directory 1
 └── data_set_2/                  # Input Data Directory 2
+
+
+## Configure the script
+
+Open `llm_nividia_annotation.py` and edit these variables:
+
+```python
+FOLDER   = "/path/to/Annotation With NividaPrompting/data_set_1"
+MODEL    = "glm-v"
+BASE_URL = "https://ellm.nrp-nautilus.io/v1"
+API_KEY  = "YOUR_API_KEY"
+
+N_FUTURE_FRAMES = 10
+
+# insert the overall navigation goal here
+NAV_GOAL = "go through the intersection"
+```
+
+Notes:
+- `FOLDER` = the dataset folder you want to run on (example: `data_set_1`)
+- `N_FUTURE_FRAMES` = last N images are treated as **future frames**; everything before that is **history**
+- `NAV_GOAL` is injected into Stage II by replacing `__INSERT_NAVIGATION_GOAL_HERE__` inside `prompt_stage_2/STAGE2_USER_TASK`
 
 
 
