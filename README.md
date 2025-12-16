@@ -8,7 +8,7 @@ This repository implements a two-stage pipeline designed to reason about autonom
 
 ## 📂 Repository Structure
 
-
+```text
 vla_prompt/
 |
 ├── llm_nividia_annotation.py    # Main script executing the pipeline
@@ -23,7 +23,7 @@ vla_prompt/
 |
 ├── data_set_1/                  # Input Data Directory 1
 └── data_set_2/                  # Input Data Directory 2
-
+```
 
 ## Configure the script
 
