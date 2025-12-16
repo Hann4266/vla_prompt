@@ -10,17 +10,19 @@ This repository implements a two-stage pipeline designed to reason about autonom
 
 ```text
 vla_prompt/
+|
 ├── llm_nividia_annotation.py    # Main script executing the pipeline
+|
 ├── prompt_stage_1/              # Stage I Prompt Engineering
 │   ├── STAGE1_SYSTEM_INSTRUCTION
 │   └── STAGE1_USER_TASK
+|
 ├── prompt_stage_2/              # Stage II Prompt Engineering
 │   ├── STAGE2_SYSTEM_INSTRUCTION
 │   └── STAGE2_USER_TASK
+|
 ├── data_set_1/                  # Input Data Directory 1
 └── data_set_2/                  # Input Data Directory 2
 
-
----
 
 
