@@ -1,0 +1,43 @@
+<|begin_of_box|>{
+  "driving_decision": {
+    "longitudinal": "Lead obstacle following",
+    "lateral": "Lane keeping & centering"
+  },
+  "critical_components": {
+    "critical_objects": [
+      {
+        "role": "lead",
+        "type": "vehicle",
+        "location": "directly ahead in ego lane",
+        "motion_state": "moving",
+        "identifier": "white sedan",
+        "uncertainty": "Low"
+      },
+      {
+        "role": "crossing",
+        "type": "vehicle",
+        "location": "to the left of ego vehicle",
+        "motion_state": "crossing",
+        "identifier": "black SUV",
+        "uncertainty": "Low"
+      },
+      {
+        "role": "adjacent_right",
+        "type": "vehicle",
+        "location": "to the right of ego vehicle",
+        "motion_state": "stopped",
+        "identifier": "silver sedan",
+        "uncertainty": "Low"
+      }
+    ],
+    "traffic_lights": [],
+    "yield_stop_control": [],
+    "road_events": [],
+    "lane_and_lanelines": [],
+    "routing_intent": [],
+    "odd_constraints": []
+  },
+  "reasoning_trace": "Because there is a lead vehicle (white sedan) directly ahead in the ego lane that constrains the ego's speed, and the ego maintains its lane position throughout the sequence with no significant turn or lane change, the ego chooses to follow the lead vehicle and keep its lane.",
+  "qa_notes": "The ego vehicle maintains a straight trajectory throughout the future frames, following the lead vehicle without changing lanes or turning.",
+  "location for critical compent in the past": "The critical components were identified in the history frames: lead vehicle (white sedan) directly ahead, crossing vehicle (black SUV) on the left, and adjacent vehicle (silver sedan) on the right."
+}<|end_of_box|>

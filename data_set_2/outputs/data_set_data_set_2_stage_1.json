@@ -1,0 +1,29 @@
+{
+  "critical_components": {
+    "critical_objects": [
+      {
+        "role": "lead",
+        "type": "vehicle",
+        "location": "directly ahead in ego lane",
+        "motion_state": "moving",
+        "identifier": "silver minivan",
+        "uncertainty": "Low"
+      },
+      {
+        "role": "crossing",
+        "type": "pedestrian",
+        "location": "in front of ego vehicle",
+        "motion_state": "crossing",
+        "identifier": "pedestrians crossing street",
+        "uncertainty": "Low"
+      }
+    ],
+    "traffic_lights": [],
+    "yield_stop_control": [],
+    "road_events": [],
+    "lane_and_lanelines": [],
+    "routing_intent": [],
+    "odd_constraints": []
+  },
+  "qa_notes": "The silver minivan is clearly visible as the lead vehicle in the ego lane. Several pedestrians are crossing the street in front of the ego vehicle, which could potentially influence driving behavior. No explicit navigation goal was provided."
+}

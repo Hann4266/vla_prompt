@@ -1,0 +1,40 @@
+<|begin_of_box|>{
+  "driving_decision": {
+    "longitudinal": "Lead obstacle following",
+    "lateral": "Turn (intersection/roundabout/U-turn)"
+  },
+  "critical_components": {
+    "critical_objects": [
+      {
+        "role": "lead",
+        "type": "vehicle",
+        "location": "directly ahead in ego lane",
+        "motion_state": "moving",
+        "identifier": "silver minivan",
+        "uncertainty": "Low"
+      },
+      {
+        "role": "crossing",
+        "type": "pedestrian",
+        "location": "in front of ego vehicle",
+        "motion_state": "crossing",
+        "identifier": "pedestrians crossing street",
+        "uncertainty": "Low"
+      }
+    ],
+    "traffic_lights": [],
+    "yield_stop_control": [],
+    "road_events": [],
+    "lane_and_lanelines": [],
+    "routing_intent": [
+      {
+        "type": "navigation",
+        "value": "turn_left"
+      }
+    ],
+    "odd_constraints": []
+  },
+  "reasoning_trace": "Because there is a lead vehicle (silver minivan) directly ahead in the ego lane and pedestrians crossing in front, and the ego vehicle is turning left at the intersection, the ego chooses to follow the lead vehicle while executing the left turn maneuver.",
+  "qa_notes": "The ego vehicle clearly turned left at the intersection. The longitudinal decision is influenced by the lead vehicle, while the lateral decision reflects the left turn maneuver.",
+  "location for critical compent in the past": "The silver minivan was located directly ahead in the ego lane, and pedestrians were crossing in front of the ego vehicle at the intersection."
+}<|end_of_box|>

@@ -1,0 +1,37 @@
+<|begin_of_box|>{
+  "critical_components": {
+    "critical_objects": [
+      {
+        "role": "lead",
+        "type": "vehicle",
+        "location": "directly ahead in ego lane",
+        "motion_state": "moving",
+        "identifier": "white sedan",
+        "uncertainty": "Low"
+      },
+      {
+        "role": "crossing",
+        "type": "vehicle",
+        "location": "to the left of ego vehicle",
+        "motion_state": "crossing",
+        "identifier": "black SUV",
+        "uncertainty": "Low"
+      },
+      {
+        "role": "adjacent_right",
+        "type": "vehicle",
+        "location": "to the right of ego vehicle",
+        "motion_state": "stopped",
+        "identifier": "silver sedan",
+        "uncertainty": "Low"
+      }
+    ],
+    "traffic_lights": [],
+    "yield_stop_control": [],
+    "road_events": [],
+    "lane_and_lanelines": [],
+    "routing_intent": [],
+    "odd_constraints": []
+  },
+  "qa_notes": "Identified a lead vehicle (white sedan) directly ahead, a crossing vehicle (black SUV) on the left, and an adjacent vehicle (silver sedan) on the right. All based on visible evidence in history frames without inferring future behavior."
+}<|end_of_box|>
